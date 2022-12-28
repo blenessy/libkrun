@@ -26,8 +26,8 @@ int main(int argc, char *const argv[])
     };
     char *const rlimits[] =
     {
-        // RLIMIT_NPROC = 6
-        "6=4096:8192",
+        "6=4194304:4194304", // RLIMIT_NPROC = 6
+        "7=1048576:1048576", // RLIMIT_NOFILE = 7
         0
     };
     char current_path[MAX_PATH];
@@ -96,12 +96,12 @@ int main(int argc, char *const argv[])
         perror("Error allocating memory for volume string");
     }
 
-    // Map port 18000 in the host to 8000 in the guest.
-    if (err = krun_set_port_map(ctx_id, &port_map[0])) {
-        errno = -err;
-        perror("Error configuring port map");
-        return -1;
-    }
+    // // Map port 18000 in the host to 8000 in the guest.
+    // if (err = krun_set_port_map(ctx_id, &port_map[0])) {
+    //     errno = -err;
+    //     perror("Error configuring port map");
+    //     return -1;
+    // }
 
     // Configure the rlimits that will be set in the guest
     if (err = krun_set_rlimits(ctx_id, &rlimits[0])) {
