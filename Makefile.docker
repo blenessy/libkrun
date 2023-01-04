@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: Unlicense
+
+# TODO: change the image name
+DOCKER_IMAGE_NAME := libkrun-builder
+
+ARCH := amd64
+
+# TODO: change the Dockerfile contents
+define DOCKERFILE
+	FROM rust:1.66-slim-buster
+
+	RUN apt-get update \
+		&& apt-get install -y --no-install-recommends \
+			patchelf make pkg-config libssl-dev \
+		&& rm -rf /var/lib/apt/lists/*
+endef
+export DOCKERFILE
+
+define docker_build_and_run
+	echo "$$DOCKERFILE" | docker build --platform $(ARCH) --tag $(DOCKER_IMAGE_NAME) -
+	docker run --rm --tty --interactive -e CARGO_HOME=/build/.cargo \
+		--mount 'type=bind,source=$(shell pwd),target=/build' --workdir /build \
+		--user '$(shell id -u):$(shell id -g)' $(1) $(DOCKER_IMAGE_NAME) $(2)
+endef
+
+ifeq ($(MAKECMDGOALS),)
+
+all:
+	$(call docker_build_and_run,--name $(DOCKER_IMAGE_NAME),)
+
+else # ifeq ($(MAKECMDGOALS),)
+
+%:
+	$(call docker_build_and_run,,make $(MAKEFLAGS) $@)
+
+endif # ifeq ($(MAKECMDGOALS),)
